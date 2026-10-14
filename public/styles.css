@@ -32,5 +32,9 @@
 .mode-label{font-size:10px;font-weight:600;line-height:1.5;color:#477561;background:#eef5f0;border-radius:5px;padding:5px 8px;max-width:180px}
 .mode-notice{margin:20px auto 0;max-width:1344px;padding:12px 18px;border:1px solid #d8e8e2;border-radius:10px;background:#eef7f3;color:#395e51;font-size:12px;line-height:1.65}
 .skill-tag{font-size:9px;line-height:1.6;color:#8b729f;background:#f6f1fa;border-radius:4px;padding:3px 6px;margin-top:8px;align-self:flex-start}
+.brand-copy{display:flex;flex-direction:column;gap:3px}
+.brand-description{font-size:10px;font-weight:500;line-height:1.5;letter-spacing:0;color:#7b8e84;white-space:nowrap}
+@media(min-width:701px) and (max-width:1100px){.topbar{height:auto}.topbar-inner{flex-wrap:wrap;padding-top:16px;padding-bottom:16px}.topbar-controls{flex:1 1 100%;justify-content:flex-end;padding-top:12px;border-top:1px solid #edf1ee}.mode-label{margin-left:auto}}
+@media(max-width:700px){.brand-description{font-size:9px}.brand-copy{gap:2px}}
 @media(max-width:1400px){.mode-notice{margin-left:24px;margin-right:24px}.workspace-label{display:none}}
 @media(max-width:700px){.mode-label{margin-left:auto;max-width:190px;font-size:9px}.workspace-label{display:none}.mode-notice{margin-left:16px;margin-right:16px;font-size:11px}}

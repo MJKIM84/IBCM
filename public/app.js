@@ -121,7 +121,7 @@ function render() {
   $("#project-code").textContent = project.code;
   $("#project-title").textContent = project.title;
   $("#customer-name").textContent = project.customer_name;
-  document.title = `${project.title} | IBCM`;
+  document.title = `${project.title} | IBMS`;
   $("#project-people").replaceChildren(...actors.map((actor) => {
     const person = element("div", `person ${actor.role}`);
     const avatar = element("span", "person-avatar", String(actor.name).slice(0, 1));
