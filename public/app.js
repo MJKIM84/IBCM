@@ -12,6 +12,7 @@ const stageDescriptions = {
   E: "산출물을 검수하고 인수인계를 마친 뒤, 프로젝트를 정리합니다."
 };
 const stageRoles = { A: "영업 주도", B: "영업 주도", C: "영업과 수행", D: "수행 주도", E: "수행과 관리" };
+const stagePurposes = { A: "사업의 가능성을 발견합니다", B: "고객에게 해답을 제안합니다", C: "약속을 실행 계획으로 잇습니다", D: "계획을 성과로 만듭니다", E: "결과를 전달하고 다음을 엽니다" };
 const eventLabels = {
   "project.created": "프로젝트를 만들었습니다",
   "stage.approval_requested": "다음 단계 승인을 요청했습니다",
@@ -121,6 +122,7 @@ function render() {
   $("#project-code").textContent = project.code;
   $("#project-title").textContent = project.title;
   $("#customer-name").textContent = project.customer_name;
+  $("#project-status-copy").textContent = `${project.current_stage} 단계 ${state.detail.pending_transition ? "승인 대기" : "진행 중"}`;
   document.title = `${project.title} | IBMS`;
   $("#project-people").replaceChildren(...actors.map((actor) => {
     const person = element("div", `person ${actor.role}`);
@@ -138,12 +140,13 @@ function render() {
 }
 
 function renderStages() {
-  const { project, stages } = state.detail;
+  const { project, stages, modules } = state.detail;
   const current = stages.findIndex((stage) => stage.key === project.current_stage);
   $("#stage-progress").textContent = `현재 진행: ${project.current_stage} ${stages[current].name}`;
   $("#stage-flow").replaceChildren(...stages.map((stage, index) => {
     const viewed = stage.key === state.viewedStage;
-    const item = element("li", `stage-item${index < current ? " complete" : index === current ? " current" : ""}${viewed ? " viewing" : ""}`);
+    const tone = index < 2 ? "sales" : index === 2 ? "handoff" : "delivery";
+    const item = element("li", `stage-item stage-${tone}${index < current ? " complete" : index === current ? " current" : ""}${viewed ? " viewing" : ""}`);
     item.dataset.stage = stage.key;
     if (index === current) item.setAttribute("aria-current", "step");
     const button = element("button", "stage-button");
@@ -155,14 +158,28 @@ function renderStages() {
     button.setAttribute("aria-label", `${stage.key} ${stage.name} 업무 보기${index === current ? ", 현재 진행 단계" : ""}`);
     const circle = element("span", "stage-circle");
     circle.setAttribute("aria-hidden", "true");
-    if (index < current) circle.append(icon("check"));
-    else circle.textContent = stage.key;
-    button.append(circle, element("span", "stage-name", stage.name), element("span", "stage-role", stageRoles[stage.key] || ""),
-      element("span", "stage-view-label", index === current ? "진행 중" : viewed ? "미리보기" : ""));
+    circle.textContent = stage.key;
+    const head = element("span", "stage-card-head");
+    head.append(circle, element("span", "stage-view-label", index === current ? "현재 진행" : viewed ? "미리보기" : index < current ? "완료" : "예정"));
+    const count = modules.filter((module) => module.category === "stage_task" && module.stage === stage.key).length;
+    const footer = element("span", "stage-card-footer");
+    const browse = element("span", "stage-browse-label", viewed ? "보고 있는 단계" : "업무 보기");
+    browse.append(icon("arrow"));
+    footer.append(element("span", "stage-task-count", `업무 ${count}개`), browse);
+    button.append(head, element("span", "stage-name", stage.name), element("span", "stage-purpose", stagePurposes[stage.key]), element("span", "stage-role", stageRoles[stage.key] || ""), footer);
     button.addEventListener("click", () => selectStage(stage.key));
     item.append(button);
     return item;
   }));
+  requestAnimationFrame(revealViewedStage);
+}
+
+function revealViewedStage() {
+  const flow = $("#stage-flow");
+  const selected = flow.querySelector(".viewing");
+  if (flow.scrollWidth > flow.clientWidth && selected) {
+    flow.scrollLeft = Math.max(0, selected.offsetLeft - (flow.clientWidth - selected.offsetWidth) / 2);
+  }
 }
 
 function selectStage(key) {
@@ -192,9 +209,12 @@ function renderGate() {
   description.replaceChildren();
   actions.replaceChildren();
   description.classList.toggle("pending", Boolean(pending));
+  description.closest(".gate-bar").classList.toggle("pending", Boolean(pending));
   if (pending) {
     const target = stages.find((stage) => stage.key === pending.to_stage);
-    description.append(icon("clock"), element("span", "", `${target ? target.name : pending.to_stage} 단계로 전환하기 위해 총괄 임원의 승인을 기다리고 있습니다.`));
+    const copy = element("span", "gate-copy");
+    copy.append(element("strong", "gate-route", `${pending.from_stage} → ${pending.to_stage} ${target ? target.name : ""}`), element("span", "gate-help", "총괄 임원의 승인을 기다리고 있습니다."));
+    description.append(icon("clock"), copy);
     if (state.actor === "executive") {
       actions.append(actionButton("reject-transition", "거절", "button-secondary", openRejection), actionButton("approve-transition", "승인", "button-primary", approveTransition, "check"));
     } else {
@@ -204,8 +224,8 @@ function renderGate() {
     description.append(icon("check"), element("span", "", "마지막 단계입니다. 검수와 종료에 필요한 업무를 확인해 주세요."));
     actions.append(element("span", "gate-complete", "마지막 단계 진행 중"));
   } else {
-    const copy = element("span");
-    copy.append("다음은 ", element("strong", "", `${next.key} ${next.name}`), " 단계입니다. 단계 전환에는 총괄 임원의 승인이 필요합니다.");
+    const copy = element("span", "gate-copy");
+    copy.append(element("strong", "gate-route", `${project.current_stage} → ${next.key} ${next.name}`), element("span", "gate-help", "업무를 마쳤다면 다음 단계 승인을 요청하세요."));
     description.append(icon("info"), copy);
     actions.append(actionButton("request-transition", state.busy ? "처리 중" : "다음 단계 승인 요청", "button-primary", requestTransition, "arrow"));
   }
@@ -226,7 +246,27 @@ function renderModules() {
   $("#stage-preview-note").hidden = !preview;
   $("#stage-preview-copy").textContent = `${viewed.name} 단계의 업무를 살펴보고 있습니다. 현재 진행 단계는 ${actual.key} ${actual.name}입니다. 이곳의 업무 카드는 미리보기로 표시됩니다.`;
   $("#task-action-note").hidden = preview;
-  $("#task-grid").replaceChildren(...taskModules.map((module) => moduleCard(module, false)));
+  const roles = [...new Set(taskModules.map((module) => module.mainRole || module.main_role || "unassigned"))];
+  roles.sort((a, b) => ["sales", "delivery", "pmo"].indexOf(a) - ["sales", "delivery", "pmo"].indexOf(b));
+  $("#task-grid").dataset.roleCount = String(roles.length);
+  $("#task-grid").dataset.wide = String(roles.some((role) => taskModules.filter((module) => (module.mainRole || module.main_role || "unassigned") === role).length >= 3));
+  $("#task-grid").replaceChildren(...roles.map((role) => {
+    const owned = taskModules.filter((module) => (module.mainRole || module.main_role || "unassigned") === role);
+    const owner = state.detail.actors.find((actor) => actor.role === role);
+    const lane = element("section", `role-lane ${role}`);
+    lane.dataset.size = owned.length >= 3 ? "wide" : "compact";
+    lane.setAttribute("aria-label", `${roleLabels[role] || "담당 미정"} 업무`);
+    const heading = element("div", "lane-heading");
+    const name = element("h3", "lane-title", roleLabels[role] || "담당 미정");
+    name.prepend(element("span", "lane-dot"));
+    name.append(element("span", "lane-count", String(owned.length)));
+    heading.append(name, element("span", "lane-owner", owner ? owner.name : ""));
+    const cards = element("div", "lane-cards");
+    cards.append(...owned.map((module) => moduleCard(module, false)));
+    lane.append(heading, cards);
+    return lane;
+  }));
+  $("#common-count").textContent = `공통 모듈 ${commonModules.length}개`;
   $("#common-grid").replaceChildren(...commonModules.map((module) => moduleCard(module, true)));
 }
 
@@ -259,7 +299,9 @@ function moduleCard(module, common) {
     const footer = element("div", "card-footer");
     const roleBadge = element("span", `role-badge ${role || ""}`);
     roleBadge.append(icon("person"), document.createTextNode(roleLabels[role] || "담당 미정"));
-    footer.append(roleBadge, preview ? element("span", "card-preview-label", "미리보기") : icon("arrow", "card-arrow"));
+    const action = element("span", preview ? "card-preview-label" : "card-action", preview ? "미리보기" : module.status === "planned" ? "준비 상태 보기" : "실행하기");
+    if (!preview) action.append(icon("arrow", "card-arrow"));
+    footer.append(roleBadge, action);
     card.append(footer);
   }
   card.addEventListener("click", () => runModule(module));
@@ -393,6 +435,7 @@ $("#actor-select").addEventListener("change", (event) => {
 });
 $("#retry-button").addEventListener("click", boot);
 $("#return-current-stage").addEventListener("click", () => selectStage(state.detail.project.current_stage));
+window.addEventListener("resize", () => requestAnimationFrame(revealViewedStage));
 $("#reject-cancel").addEventListener("click", () => $("#reject-dialog").close());
 $("#reject-dialog").addEventListener("cancel", (event) => { if (state.busy) event.preventDefault(); });
 $("#reject-reason").addEventListener("input", () => {

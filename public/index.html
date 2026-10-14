@@ -26,7 +26,7 @@
         </div>
       </div>
     </header>
-    <aside id="mode-notice" class="mode-notice" hidden>기록은 이 브라우저에 저장됩니다. 다른 사람과 공유되지 않으며 브라우저 데이터를 지우면 기록도 삭제됩니다.</aside>
+    <aside id="mode-notice" class="mode-notice" hidden><span class="notice-dot" aria-hidden="true"></span>기록은 이 브라우저에 저장됩니다. 다른 사람과 공유되지 않으며 브라우저 데이터를 지우면 기록도 삭제됩니다.</aside>
 
     <main id="main" class="workspace">
       <div id="loading-state" class="loading-state" role="status"><span class="spinner" aria-hidden="true"></span><p>프로젝트를 불러오고 있습니다.</p></div>
@@ -35,18 +35,19 @@
       <div id="project-content" hidden>
         <section class="project-intro" aria-labelledby="project-title">
           <div class="project-heading">
-            <div class="project-eyebrow"><span id="project-code" class="project-code"></span><span class="project-status"><span class="status-dot"></span>진행 중</span></div>
+            <div class="project-eyebrow"><span id="project-code" class="project-code"></span><span class="project-status"><span class="status-dot"></span><span id="project-status-copy">진행 중</span></span></div>
             <h1 id="project-title"></h1>
             <p class="project-subtitle"><svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M16 10h3a1 1 0 0 1 1 1v10M2 21h20M8 7h4M8 11h4M8 15h4M9 21v-3h3v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="customer-name"></span><span class="subtitle-divider" aria-hidden="true"></span><span>프로젝트의 시작부터 마무리까지, 하나의 흐름으로</span></p>
           </div>
-          <div class="project-people" id="project-people" aria-label="프로젝트 담당자"></div>
+          <div class="project-team"><p class="team-caption">함께하는 담당자</p><div class="project-people" id="project-people" aria-label="프로젝트 담당자"></div></div>
         </section>
 
         <section class="flow-panel" aria-labelledby="flow-heading">
-          <div class="panel-heading"><h2 id="flow-heading">프로젝트 진행 단계</h2><span id="stage-progress" class="muted-label"></span></div>
-          <p class="stage-browse-help">단계를 누르면 해당 업무를 볼 수 있습니다. 실제 단계 전환에는 승인이 필요합니다.</p>
+          <div class="panel-heading"><div><p class="section-eyebrow">사업의 시작부터 마무리까지</p><h2 id="flow-heading">프로젝트의 흐름</h2></div><span id="stage-progress" class="current-stage-badge"></span></div>
+          <p class="stage-browse-help">단계를 선택하면 해당 업무를 볼 수 있습니다. 실제 진행 단계는 승인 후 변경됩니다.<span class="flow-scroll-hint">옆으로 넘겨 모든 단계를 확인하세요.</span></p>
           <ol id="stage-flow" class="stage-flow" aria-label="프로젝트의 다섯 단계"></ol>
           <div class="gate-bar">
+            <div class="gate-label"><span class="gate-label-dot" aria-hidden="true"></span>단계 전환</div>
             <div id="gate-description" class="gate-description" role="status"></div>
             <div id="gate-actions" class="gate-actions"></div>
           </div>
@@ -54,8 +55,8 @@
 
         <section class="tasks-section" aria-labelledby="tasks-heading">
           <div class="section-heading">
-            <div class="section-title-group"><span id="current-stage-letter" class="section-letter" aria-hidden="true"></span><div><div class="section-heading-line"><h2 id="tasks-heading"></h2><span id="task-count" class="count-badge"></span></div><p id="tasks-description" class="section-description"></p></div></div>
-            <span id="task-action-note" class="section-note"><span class="small-dot"></span>모듈을 선택하면 이용 기록이 남습니다</span>
+            <div class="section-title-group"><span id="current-stage-letter" class="section-letter" aria-hidden="true"></span><div><p class="section-eyebrow">담당 역할별 업무</p><div class="section-heading-line"><h2 id="tasks-heading"></h2><span id="task-count" class="count-badge"></span></div><p id="tasks-description" class="section-description"></p></div></div>
+            <span id="task-action-note" class="section-note">카드를 누르면 준비 상태를 확인할 수 있습니다.</span>
           </div>
           <div id="stage-preview-note" class="stage-preview-note" hidden>
             <p id="stage-preview-copy" role="status"></p>
@@ -65,12 +66,12 @@
         </section>
 
         <section class="common-section" aria-labelledby="common-heading">
-          <div class="section-heading"><div><h2 id="common-heading">함께 쓰는 공통 모듈</h2><p class="section-description">어느 단계에서든 프로젝트에 필요한 기록을 연결합니다.</p></div><span class="section-caption">모든 단계에서 사용</span></div>
+          <div class="section-heading"><div><p class="section-eyebrow">일의 흐름을 함께 잇는 도구</p><h2 id="common-heading">어느 단계에서든, 함께 쓰는 도구</h2><p class="section-description">회의와 관계, 요구사항과 산출물을 한곳에서 연결합니다.</p></div><span id="common-count" class="section-caption">공통 모듈 6개</span></div>
           <div id="common-grid" class="common-grid"></div>
         </section>
 
         <section class="activity-panel" aria-labelledby="activity-heading">
-          <div class="activity-heading"><div class="activity-title"><svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><h2 id="activity-heading">프로젝트 활동 기록</h2><span class="record-badge">이벤트 통로</span></div><span class="live-label"><span class="status-dot"></span>최근 상태</span></div>
+          <div class="activity-heading"><div class="activity-title"><svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><h2 id="activity-heading">활동과 연결 기록</h2></div><span class="live-label"><span class="status-dot"></span>변경 내용이 자동으로 기록됩니다</span></div>
           <div class="activity-columns"><div class="events-column"><h3>최근 이벤트</h3><ul id="event-list" class="event-list"></ul></div><div class="outbox-column"><div class="outbox-heading"><h3>외부 도구 전송 기록</h3><span class="stub-badge">모의 연결</span></div><div id="outbox-summary" class="outbox-summary"></div><ul id="outbox-list" class="outbox-list"></ul><p class="outbox-note">외부 도구를 실제로 호출하지 않고 수신 기록만 남깁니다.</p></div></div>
         </section>
         <footer class="page-footer"><span class="footer-brand">IBMS</span><span>일의 흐름을 잇고, 다음 단계를 준비합니다.</span><span class="footer-note">프로젝트 업무 관리</span></footer>
