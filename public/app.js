@@ -1,6 +1,6 @@
 "use strict";
 
-const state = { projects: [], detail: null, viewedStage: null, actor: "sales", busy: false, loadSequence: 0, toastTimer: null };
+const state = { projects: [], detail: null, viewedStage: null, flowExpanded: false, actor: "sales", busy: false, loadSequence: 0, toastTimer: null };
 const $ = (selector) => document.querySelector(selector);
 const store = window.IBCM_STORE;
 const roleLabels = { executive: "총괄 임원", sales: "영업", delivery: "수행", pmo: "관리" };
@@ -86,6 +86,7 @@ function setBusy(busy) {
   document.querySelectorAll("[data-module-key]").forEach((button) => { button.disabled = busy || button.dataset.preview === "true"; });
   document.querySelectorAll("[data-stage-target]").forEach((button) => { button.disabled = busy; });
   $("#return-current-stage").disabled = busy;
+  $("#flow-expand-toggle").disabled = busy;
   $("#reject-submit").disabled = busy;
   $("#reject-cancel").disabled = busy;
   if (state.detail) renderGate();
@@ -143,6 +144,11 @@ function renderStages() {
   const { project, stages, modules } = state.detail;
   const current = stages.findIndex((stage) => stage.key === project.current_stage);
   $("#stage-progress").textContent = `현재 진행: ${project.current_stage} ${stages[current].name}`;
+  $(".flow-panel").dataset.expanded = String(state.flowExpanded);
+  $("#flow-expand-toggle").setAttribute("aria-expanded", String(state.flowExpanded));
+  $("#flow-expand-toggle").setAttribute("aria-label", `단계별 업무 목록 ${state.flowExpanded ? "접기" : "확장"}`);
+  $("#flow-expand-label").textContent = state.flowExpanded ? "접기" : "확장";
+  $("#stage-workspace").dataset.preview = String(state.viewedStage !== project.current_stage);
   $("#stage-flow").replaceChildren(...stages.map((stage, index) => {
     const viewed = stage.key === state.viewedStage;
     const tone = index < 2 ? "sales" : index === 2 ? "handoff" : "delivery";
@@ -156,7 +162,7 @@ function renderStages() {
     button.setAttribute("aria-pressed", String(viewed));
     button.setAttribute("aria-controls", "task-grid");
     button.setAttribute("aria-label", `${stage.key} ${stage.name} 업무 보기${index === current ? ", 현재 진행 단계" : ""}`);
-    button.setAttribute("aria-describedby", `stage-workflow-${stage.key}`);
+    if (state.flowExpanded) button.setAttribute("aria-describedby", `stage-workflow-${stage.key}`);
     const circle = element("span", "stage-circle");
     circle.setAttribute("aria-hidden", "true");
     circle.textContent = stage.key;
@@ -166,6 +172,7 @@ function renderStages() {
     const summary = element("span", "stage-summary");
     summary.append(head, element("span", "stage-name", stage.name), element("span", "stage-purpose", stagePurposes[stage.key]), element("span", "stage-role", stageRoles[stage.key] || ""));
     const workflow = element("span", "stage-workflow");
+    workflow.hidden = !state.flowExpanded;
     workflow.id = `stage-workflow-${stage.key}`;
     workflow.setAttribute("role", "list");
     workflow.setAttribute("aria-label", `${stage.name} 업무 구성`);
@@ -184,7 +191,9 @@ function renderStages() {
     const browse = element("span", "stage-browse-label", viewed ? "보고 있는 단계" : "업무 보기");
     browse.append(icon("arrow"));
     footer.append(element("span", "stage-task-count", `업무 ${stageTasks.length}개`), browse);
-    button.append(summary, element("span", "stage-workflow-caption", "업무 구성"), workflow, footer);
+    const caption = element("span", "stage-workflow-caption", "업무 구성");
+    caption.hidden = !state.flowExpanded;
+    button.append(summary, caption, workflow, footer);
     button.addEventListener("click", () => selectStage(stage.key));
     item.append(button);
     return item;
@@ -199,6 +208,46 @@ function revealViewedStage() {
   if (flow.scrollWidth > flow.clientWidth && selected) {
     flow.scrollLeft = Math.max(0, selected.offsetLeft - (flow.clientWidth - selected.offsetWidth) / 2);
   }
+  scheduleStageConnection();
+}
+
+let connectionFrame = null;
+function scheduleStageConnection() {
+  if (connectionFrame !== null) return;
+  connectionFrame = requestAnimationFrame(() => {
+    connectionFrame = null;
+    updateStageConnection();
+  });
+}
+
+function updateStageConnection() {
+  const connection = $("#stage-connection");
+  const selected = $("#stage-flow .viewing .stage-button");
+  if (!selected || $("#project-content").hidden) {
+    connection.setAttribute("hidden", "");
+    return;
+  }
+  const workspace = $("#stage-workspace").getBoundingClientRect();
+  const flow = $("#stage-flow").getBoundingClientRect();
+  const card = selected.getBoundingClientRect();
+  const detail = $("#stage-detail-panel").getBoundingClientRect();
+  // Keep the connector attached to the visible part of a horizontally scrolling card.
+  const left = Math.max(card.left + 10, flow.left + 2) - workspace.left;
+  const right = Math.min(card.right - 10, flow.right - 2) - workspace.left;
+  if (right <= left || !workspace.width) {
+    connection.setAttribute("hidden", "");
+    return;
+  }
+  const top = card.bottom - workspace.top;
+  const bottom = detail.top - workspace.top;
+  const endLeft = detail.left + 18 - workspace.left;
+  const endRight = detail.right - 18 - workspace.left;
+  const bend = (bottom - top) * .45;
+  connection.setAttribute("viewBox", `0 0 ${workspace.width} ${workspace.height}`);
+  $("#stage-connection-left").setAttribute("d", `M ${left} ${top} C ${left} ${top + bend}, ${endLeft} ${bottom - bend}, ${endLeft} ${bottom}`);
+  $("#stage-connection-right").setAttribute("d", `M ${right} ${top} C ${right} ${top + bend}, ${endRight} ${bottom - bend}, ${endRight} ${bottom}`);
+  $("#stage-connection-fill").setAttribute("d", `M ${left} ${top} L ${right} ${top} C ${right} ${top + bend}, ${endRight} ${bottom - bend}, ${endRight} ${bottom} L ${endLeft} ${bottom} C ${endLeft} ${bottom - bend}, ${left} ${top + bend}, ${left} ${top} Z`);
+  connection.removeAttribute("hidden");
 }
 
 function selectStage(key) {
@@ -258,6 +307,7 @@ function renderModules() {
   const taskModules = modules.filter((module) => module.category === "stage_task" && module.stage === state.viewedStage).sort((a, b) => a.order - b.order);
   const commonModules = modules.filter((module) => module.category === "common").sort((a, b) => a.order - b.order);
   $("#current-stage-letter").textContent = state.viewedStage;
+  $("#stage-detail-origin").textContent = `${viewed.key} 단계에서 이어지는 상세 업무`;
   $("#tasks-heading").textContent = viewed.name;
   $("#task-count").textContent = `${taskModules.length}`;
   $("#task-count").setAttribute("aria-label", `업무 모듈 ${taskModules.length}개`);
@@ -287,6 +337,7 @@ function renderModules() {
   }));
   $("#common-count").textContent = `공통 모듈 ${commonModules.length}개`;
   $("#common-grid").replaceChildren(...commonModules.map((module) => moduleCard(module, true)));
+  scheduleStageConnection();
 }
 
 function moduleCard(module, common) {
@@ -454,6 +505,14 @@ $("#actor-select").addEventListener("change", (event) => {
 });
 $("#retry-button").addEventListener("click", boot);
 $("#return-current-stage").addEventListener("click", () => selectStage(state.detail.project.current_stage));
+$("#flow-expand-toggle").addEventListener("click", () => {
+  if (state.busy || !state.detail) return;
+  state.flowExpanded = !state.flowExpanded;
+  renderStages();
+});
+$("#stage-flow").addEventListener("scroll", scheduleStageConnection, { passive: true });
+const stageLayoutObserver = new ResizeObserver(scheduleStageConnection);
+["#stage-workspace", "#stage-flow", "#stage-detail-panel"].forEach((selector) => stageLayoutObserver.observe($(selector)));
 window.addEventListener("resize", () => requestAnimationFrame(revealViewedStage));
 $("#reject-cancel").addEventListener("click", () => $("#reject-dialog").close());
 $("#reject-dialog").addEventListener("cancel", (event) => { if (state.busy) event.preventDefault(); });

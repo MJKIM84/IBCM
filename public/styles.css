@@ -77,8 +77,16 @@ h1 { color: #203a30; font-size: 30px; line-height: 1.35; font-weight: 750; }
 .person-name { color: #344b3d; font-size: 12px; font-weight: 650; }
 
 /* 다섯 단계로 연결되는 사업 지도 */
+.stage-workspace { position: relative; isolation: isolate; --selection-color: #347f61; --selection-soft: #f0f8f3; --selection-strong: #dcefe3; }
+.stage-workspace[data-preview="true"] { --selection-color: #6a7a94; --selection-soft: #f2f5fa; --selection-strong: #e1e9f4; }
+.stage-connection { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; overflow: visible; }
+.stage-connection-fill { fill: var(--selection-strong); opacity: .7; animation: connection-pulse 3.6s ease-in-out infinite; }
+.stage-connection-edge { fill: none; stroke: var(--selection-color); stroke-width: 1.5; opacity: .5; }
 .flow-panel { background: white; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; box-shadow: 0 3px 14px #173d2b04; }
 .panel-heading { padding: 25px 28px 0; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.flow-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.flow-expand-toggle { white-space: nowrap; }
+.flow-expand-toggle[aria-expanded="true"] .icon { transform: rotate(180deg); }
 .section-eyebrow { color: #728276; font-size: 11px; letter-spacing: .015em; font-weight: 550; margin-bottom: 6px; }
 h2 { font-size: 22px; line-height: 1.4; font-weight: 750; }
 .current-stage-badge { padding: 8px 11px; border: 1px solid #d6e7dc; border-radius: 7px; background: #f0f7f2; color: #2c6950; font-size: 12px; font-weight: 600; white-space: nowrap; }
@@ -94,7 +102,7 @@ h2 { font-size: 22px; line-height: 1.4; font-weight: 750; }
 .stage-button::before { content: ""; position: absolute; left: 14px; right: 14px; top: 0; height: 3px; border-radius: 0 0 3px 3px; background: var(--stage-color); opacity: .45; }
 .stage-button:hover:not(:disabled) { border-color: var(--stage-color); background: #fff; box-shadow: 0 3px 10px #233c3110; }
 .stage-item.current .stage-button { background: #f0f7f3; border-color: #90baa5; }
-.stage-item.viewing .stage-button { border: 2px solid #347f61; padding: 15px 13px 11px; box-shadow: 0 0 0 3px #eaf3ed; background: white; }
+.stage-item.viewing .stage-button { border: 2px solid #347f61; padding: 15px 13px 11px; box-shadow: 0 0 0 3px #eaf3ed; background: var(--selection-soft); animation: stage-highlight-pulse 3.6s ease-in-out infinite; }
 .stage-item.viewing:not(.current) .stage-button { border-color: #6a7a94; box-shadow: 0 0 0 3px #edf0f5; }
 .stage-card-head { display: flex; align-items: center; justify-content: space-between; gap: 5px; width: 100%; margin-bottom: 16px; }
 .stage-circle { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; color: var(--stage-color); background: var(--stage-bg); font-size: 17px; font-weight: 750; }
@@ -124,7 +132,7 @@ h2 { font-size: 22px; line-height: 1.4; font-weight: 750; }
 .stage-card-footer { display: flex; justify-content: space-between; align-items: center; gap: 4px; width: 100%; margin-top: auto; padding-top: 15px; color: #6b7d71; font-size: 10px; }
 .stage-browse-label { display: flex; align-items: center; gap: 3px; color: #415e4b; }
 .stage-browse-label .icon { width: 13px; height: 13px; }
-.gate-bar { display: flex; align-items: center; gap: 22px; padding: 18px 28px; border-top: 1px solid #e5ece6; background: #f8faf8; }
+.gate-bar { display: flex; align-items: center; gap: 22px; margin: 18px 28px 0; padding: 12px 14px; border: 1px solid #e5ece6; border-radius: 9px; background: #f8faf8; }
 .gate-bar.pending { background: #fffbf3; }
 .gate-label { display: flex; align-items: center; gap: 8px; color: #5c7161; font-size: 12px; font-weight: 650; flex: none; }
 .gate-label-dot { width: 7px; height: 7px; border: 2px solid #729b81; border-radius: 2px; }
@@ -148,6 +156,12 @@ h2 { font-size: 22px; line-height: 1.4; font-weight: 750; }
 
 /* 단계 안에서 누가 어떤 업무를 맡는지 보여 줍니다. */
 .tasks-section, .common-section { margin-top: 34px; }
+.tasks-section { position: relative; z-index: 2; isolation: isolate; padding: 23px; border: 1px solid var(--selection-color); border-radius: 16px; background: #f8fbf9; }
+.tasks-section::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; border-radius: inherit; background: var(--selection-strong); opacity: .3; animation: detail-highlight-pulse 3.6s ease-in-out infinite; }
+.tasks-section .section-letter { color: var(--selection-color); background: var(--selection-strong); border-color: var(--selection-color); }
+@keyframes stage-highlight-pulse { 0%, 100% { background-color: var(--selection-soft); } 50% { background-color: var(--selection-strong); } }
+@keyframes connection-pulse { 0%, 100% { opacity: .45; } 50% { opacity: .85; } }
+@keyframes detail-highlight-pulse { 0%, 100% { opacity: .2; } 50% { opacity: .5; } }
 .section-heading { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 20px; }
 .section-title-group { display: flex; align-items: center; gap: 14px; min-width: 0; }
 .section-letter { display: grid; place-items: center; width: 49px; height: 55px; flex: none; color: #397452; background: #e7f0e8; border: 1px solid #d8e5db; border-radius: 10px; font-size: 24px; font-weight: 700; }
@@ -317,7 +331,8 @@ h2 { font-size: 22px; line-height: 1.4; font-weight: 750; }
   .stage-card-footer { flex-wrap: nowrap; }
   .flow-scroll-hint { display: block; color: #76897b; font-size: 11px; margin-top: 4px; }
   .gate-label { display: none; }
-  .gate-bar { padding-left: 22px; padding-right: 22px; gap: 14px; }
+  .gate-bar { margin-left: 22px; margin-right: 22px; gap: 14px; }
+  .tasks-section { padding: 18px; }
   .task-grid, .task-grid[data-role-count="2"] { grid-template-columns: minmax(0, 1fr); }
   .task-grid[data-role-count="3"][data-wide="true"], .task-grid[data-role-count="2"][data-wide="true"] { grid-template-columns: minmax(0, 1fr); }
   .task-grid:not([data-role-count="1"]) .role-lane[data-size="wide"] { grid-column: auto; }
@@ -353,6 +368,7 @@ h2 { font-size: 22px; line-height: 1.4; font-weight: 750; }
   .person-name { font-size: 12px; }
   .flow-panel { border-radius: 12px; }
   .panel-heading { padding: 21px 18px 0; align-items: flex-start; flex-direction: column; gap: 12px; }
+  .flow-controls { width: 100%; justify-content: space-between; gap: 6px; }
   .section-eyebrow { font-size: 10px; }
   h2 { font-size: 21px; }
   .current-stage-badge { font-size: 11px; padding: 6px 9px; }
@@ -360,7 +376,7 @@ h2 { font-size: 22px; line-height: 1.4; font-weight: 750; }
   .stage-flow { margin-top: 16px; padding: 4px 18px 20px; grid-template-columns: repeat(5, 235px); }
   .stage-button { min-height: 198px; }
   .stage-name { font-size: 16px; }
-  .gate-bar { padding: 16px 18px; flex-wrap: wrap; }
+  .gate-bar { margin: 16px 18px 0; padding: 12px; flex-wrap: wrap; }
   .gate-description { width: 100%; }
   .gate-route { font-size: 13px; }
   .gate-help { font-size: 11px; }
@@ -368,6 +384,7 @@ h2 { font-size: 22px; line-height: 1.4; font-weight: 750; }
   .gate-actions .button { flex: 1; }
   .button { min-height: 44px; font-size: 12px; padding: 11px 13px; }
   .tasks-section, .common-section { margin-top: 28px; }
+  .tasks-section { padding: 18px 10px 10px; border-radius: 12px; }
   .section-heading { gap: 14px; margin-bottom: 17px; align-items: flex-start; }
   .section-title-group { gap: 11px; align-items: flex-start; }
   .section-letter { width: 39px; height: 47px; font-size: 22px; }

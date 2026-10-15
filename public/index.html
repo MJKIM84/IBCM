@@ -42,20 +42,32 @@
           <div class="project-team"><p class="team-caption">함께하는 담당자</p><div class="project-people" id="project-people" aria-label="프로젝트 담당자"></div></div>
         </section>
 
-        <section class="flow-panel" aria-labelledby="flow-heading">
-          <div class="panel-heading"><div><p class="section-eyebrow">사업의 시작부터 마무리까지</p><h2 id="flow-heading">프로젝트의 흐름</h2></div><span id="stage-progress" class="current-stage-badge"></span></div>
-          <p class="stage-browse-help">가로로 사업 단계를, 세로로 각 단계의 업무와 담당 역할을 확인하세요. 단계를 선택하면 아래에 상세 업무가 열립니다.<span class="flow-scroll-hint">옆으로 넘겨 모든 단계를 확인하세요.</span></p>
-          <ol id="stage-flow" class="stage-flow" aria-label="프로젝트의 다섯 단계"></ol>
+        <div id="stage-workspace" class="stage-workspace">
+        <svg id="stage-connection" class="stage-connection" aria-hidden="true" focusable="false" hidden>
+          <path id="stage-connection-fill" class="stage-connection-fill"/>
+          <path id="stage-connection-left" class="stage-connection-edge"/>
+          <path id="stage-connection-right" class="stage-connection-edge"/>
+        </svg>
+        <section class="flow-panel" aria-labelledby="flow-heading" data-expanded="false">
+          <div class="panel-heading">
+            <div><p class="section-eyebrow">사업의 시작부터 마무리까지</p><h2 id="flow-heading">프로젝트의 흐름</h2></div>
+            <div class="flow-controls">
+              <span id="stage-progress" class="current-stage-badge"></span>
+              <button id="flow-expand-toggle" class="button button-secondary flow-expand-toggle" type="button" aria-expanded="false" aria-controls="stage-flow"><span id="flow-expand-label">확장</span><svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            </div>
+          </div>
+          <p class="stage-browse-help">단계를 선택하면 아래 상세 업무로 이어집니다. 확장하면 단계별 업무 목록도 함께 볼 수 있습니다.<span class="flow-scroll-hint">옆으로 넘겨 모든 단계를 확인하세요.</span></p>
           <div class="gate-bar">
             <div class="gate-label"><span class="gate-label-dot" aria-hidden="true"></span>단계 전환</div>
             <div id="gate-description" class="gate-description" role="status"></div>
             <div id="gate-actions" class="gate-actions"></div>
           </div>
+          <ol id="stage-flow" class="stage-flow" aria-label="프로젝트의 다섯 단계"></ol>
         </section>
 
-        <section class="tasks-section" aria-labelledby="tasks-heading">
+        <section id="stage-detail-panel" class="tasks-section" aria-labelledby="tasks-heading">
           <div class="section-heading">
-            <div class="section-title-group"><span id="current-stage-letter" class="section-letter" aria-hidden="true"></span><div><p class="section-eyebrow">담당 역할별 업무</p><div class="section-heading-line"><h2 id="tasks-heading"></h2><span id="task-count" class="count-badge"></span></div><p id="tasks-description" class="section-description"></p></div></div>
+            <div class="section-title-group"><span id="current-stage-letter" class="section-letter" aria-hidden="true"></span><div><p class="section-eyebrow"><span id="stage-detail-origin">선택한 단계의 상세 업무</span></p><div class="section-heading-line"><h2 id="tasks-heading"></h2><span id="task-count" class="count-badge"></span></div><p id="tasks-description" class="section-description"></p></div></div>
             <span id="task-action-note" class="section-note">카드를 누르면 준비 상태를 확인할 수 있습니다.</span>
           </div>
           <div id="stage-preview-note" class="stage-preview-note" hidden>
@@ -64,6 +76,7 @@
           </div>
           <div id="task-grid" class="task-grid"></div>
         </section>
+        </div>
 
         <section class="common-section" aria-labelledby="common-heading">
           <div class="section-heading"><div><p class="section-eyebrow">일의 흐름을 함께 잇는 도구</p><h2 id="common-heading">어느 단계에서든, 함께 쓰는 도구</h2><p class="section-description">회의와 관계, 요구사항과 산출물을 한곳에서 연결합니다.</p></div><span id="common-count" class="section-caption">공통 모듈 6개</span></div>
