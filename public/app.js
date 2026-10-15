@@ -1,7 +1,7 @@
 "use strict";
 
 const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
-const state = { projects: [], detail: null, viewedStage: null, flowExpanded: false, pulseEnabled: !motionPreference.matches, pulseOverridden: false, actor: "sales", busy: false, loadSequence: 0, toastTimer: null };
+const state = { projects: [], detail: null, viewedStage: null, selectedTaskKey: null, activeTaskKey: null, flowExpanded: false, pulseEnabled: !motionPreference.matches, pulseOverridden: false, actor: "sales", busy: false, loadSequence: 0, toastTimer: null };
 const $ = (selector) => document.querySelector(selector);
 const store = window.IBCM_STORE;
 const roleLabels = { executive: "총괄 임원", sales: "영업", delivery: "수행", pmo: "관리" };
@@ -104,6 +104,8 @@ async function loadProject(id, initial = false) {
   if (sequence !== state.loadSequence) return;
   if (!state.detail || state.detail.project.id !== detail.project.id || state.detail.project.current_stage !== detail.project.current_stage) {
     state.viewedStage = detail.project.current_stage;
+    state.selectedTaskKey = null;
+    state.activeTaskKey = null;
   }
   state.detail = detail;
   render();
@@ -217,7 +219,7 @@ let connectionFrame = null;
 function renderPulse() {
   $("#stage-workspace").dataset.pulse = String(state.pulseEnabled);
   $("#flow-pulse-toggle").setAttribute("aria-pressed", String(state.pulseEnabled));
-  $("#flow-pulse-label").textContent = state.pulseEnabled ? "박동 켜짐" : "박동 꺼짐";
+  $("#flow-pulse-label").textContent = state.pulseEnabled ? "카드 박동 켜짐" : "카드 박동 꺼짐";
 }
 
 function scheduleStageConnection() {
@@ -271,6 +273,10 @@ function updateStageConnection() {
 
 function selectStage(key) {
   if (state.busy || !state.detail.stages.some((stage) => stage.key === key)) return;
+  if (key !== state.viewedStage) {
+    state.selectedTaskKey = null;
+    state.activeTaskKey = null;
+  }
   state.viewedStage = key;
   renderStages();
   renderModules();
@@ -356,7 +362,21 @@ function renderModules() {
   }));
   $("#common-count").textContent = `공통 모듈 ${commonModules.length}개`;
   $("#common-grid").replaceChildren(...commonModules.map((module) => moduleCard(module, true)));
+  highlightTask(state.activeTaskKey);
   scheduleStageConnection();
+}
+
+function highlightTask(key) {
+  state.activeTaskKey = key;
+  document.querySelectorAll("#task-grid .module-card").forEach((card) => {
+    card.classList.toggle("is-highlighted", card.dataset.moduleKey === key && card.dataset.preview !== "true");
+  });
+}
+
+function restoreTaskHighlight() {
+  const hovered = $("#task-grid .module-card:hover:not(:disabled)");
+  const focused = $("#task-grid .module-card:focus-visible:not(:disabled)");
+  highlightTask((hovered || focused)?.dataset.moduleKey || state.selectedTaskKey);
 }
 
 function moduleCard(module, common) {
@@ -393,7 +413,21 @@ function moduleCard(module, common) {
     footer.append(roleBadge, action);
     card.append(footer);
   }
-  card.addEventListener("click", () => runModule(module));
+  if (!common) {
+    const highlight = () => { if (!card.disabled) highlightTask(module.key); };
+    card.addEventListener("pointerenter", (event) => { if (event.pointerType !== "touch") highlight(); });
+    card.addEventListener("pointerleave", restoreTaskHighlight);
+    card.addEventListener("focus", highlight);
+    card.addEventListener("blur", restoreTaskHighlight);
+  }
+  card.addEventListener("click", () => {
+    if (card.disabled) return;
+    if (!common) {
+      state.selectedTaskKey = module.key;
+      highlightTask(module.key);
+    }
+    runModule(module);
+  });
   return card;
 }
 

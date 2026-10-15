@@ -81,7 +81,6 @@ h1 { color: #203a30; font-size: 30px; line-height: 1.35; font-weight: 750; }
 .stage-workspace[data-preview="true"] { --selection-color: #6a7a94; --selection-soft: #f1f5fb; --selection-strong: #c4d7ed; }
 .stage-connection { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; overflow: visible; }
 .stage-connection-fill { fill: var(--selection-soft); stroke: var(--selection-color); stroke-width: 1.5; stroke-opacity: .65; }
-.stage-workspace[data-pulse="true"] .stage-connection-fill { animation: stage-heartbeat 2.4s ease-in-out infinite; }
 .flow-panel { position: relative; background: white; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; box-shadow: 0 3px 14px #173d2b04; }
 .flow-panel > * { position: relative; z-index: 2; }
 .panel-heading { padding: 25px 28px 0; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
@@ -162,11 +161,6 @@ h2 { font-size: 22px; line-height: 1.4; font-weight: 750; }
 .tasks-section { position: relative; z-index: 2; padding: 24px; border: 0; background: transparent; }
 .tasks-section .section-eyebrow, .tasks-section .section-description, .tasks-section .section-note { color: #486051; }
 .tasks-section .section-letter { color: var(--selection-color); background: var(--selection-strong); border-color: var(--selection-color); }
-@keyframes stage-heartbeat {
-  0%, 42%, 100% { fill: var(--selection-soft); stroke-opacity: .65; }
-  12%, 30% { fill: var(--selection-strong); stroke-opacity: 1; }
-  21% { fill: var(--selection-soft); stroke-opacity: .75; }
-}
 .section-heading { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 20px; }
 .section-title-group { display: flex; align-items: center; gap: 14px; min-width: 0; }
 .section-letter { display: grid; place-items: center; width: 49px; height: 55px; flex: none; color: #397452; background: #e7f0e8; border: 1px solid #d8e5db; border-radius: 10px; font-size: 24px; font-weight: 700; }
@@ -199,6 +193,17 @@ h2 { font-size: 22px; line-height: 1.4; font-weight: 750; }
 .module-card.sales:hover:not(:disabled) { border-color: #b49acb; }
 .module-card.pmo:hover:not(:disabled) { border-color: #c5a476; }
 .module-card:focus-visible { outline-offset: 2px; }
+.module-card { --card-highlight: var(--green); --card-highlight-bg: #daeee3; --card-glow: #216e5930; }
+.module-card.sales { --card-highlight: var(--sales); --card-highlight-bg: #e9ddf7; --card-glow: #7850ac30; }
+.module-card.delivery { --card-highlight: var(--delivery); --card-highlight-bg: #d7eee7; --card-glow: #187b7230; }
+.module-card.pmo { --card-highlight: var(--pmo); --card-highlight-bg: #fbe6cb; --card-glow: #a8652130; }
+#task-grid .module-card.is-highlighted { border-color: var(--card-highlight); box-shadow: 0 0 0 2px var(--card-glow); transform: none; }
+.stage-workspace[data-pulse="true"] .module-card.is-highlighted { animation: task-heartbeat 2.4s ease-in-out infinite; }
+@keyframes task-heartbeat {
+  0%, 42%, 100% { background-color: white; box-shadow: 0 0 0 1px var(--card-glow); }
+  12%, 30% { background-color: var(--card-highlight-bg); box-shadow: 0 0 0 4px var(--card-glow); }
+  21% { background-color: white; box-shadow: 0 0 0 1px var(--card-glow); }
+}
 .module-card[data-preview="true"]:disabled { opacity: 1; cursor: default; background: #ffffffd9; border-style: dashed; }
 .card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 11px; }
 .card-number { font-size: 11px; color: #7b8b7d; font-weight: 650; font-variant-numeric: tabular-nums; }
@@ -432,5 +437,5 @@ h2 { font-size: 22px; line-height: 1.4; font-weight: 750; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
   /* Reduced motion starts paused; the user can explicitly enable the heartbeat. */
-  .stage-workspace[data-pulse="true"] .stage-connection-fill { animation: stage-heartbeat 2.4s ease-in-out infinite !important; }
+  .stage-workspace[data-pulse="true"] .module-card.is-highlighted { animation: task-heartbeat 2.4s ease-in-out infinite !important; }
 }
