@@ -46,16 +46,16 @@
         <svg id="stage-connection" class="stage-connection" aria-hidden="true" focusable="false" hidden>
           <path id="stage-connection-fill" class="stage-connection-fill"/>
         </svg>
-        <section class="flow-panel" aria-labelledby="flow-heading" data-expanded="false">
+        <section class="flow-panel" aria-labelledby="flow-heading" data-expanded="true">
           <div class="panel-heading">
             <div><p class="section-eyebrow">사업의 시작부터 마무리까지</p><h2 id="flow-heading">프로젝트의 흐름</h2></div>
             <div class="flow-controls">
               <span id="stage-progress" class="current-stage-badge"></span>
               <button id="flow-pulse-toggle" class="button button-secondary flow-pulse-toggle" type="button" aria-pressed="false" aria-label="업무 카드 박동" aria-controls="task-grid"><svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 12h5l3-7 4 14 3-7h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="flow-pulse-label">카드 박동 꺼짐</span></button>
-              <button id="flow-expand-toggle" class="button button-secondary flow-expand-toggle" type="button" aria-expanded="false" aria-controls="stage-flow"><span id="flow-expand-label">확장</span><svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <button id="flow-expand-toggle" class="button button-secondary flow-expand-toggle" type="button" aria-expanded="true" aria-controls="stage-flow"><span id="flow-expand-label">접기</span><svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
             </div>
           </div>
-          <p class="stage-browse-help">단계를 선택하면 아래 상세 업무로 이어집니다. 확장하면 단계별 업무 목록도 함께 볼 수 있습니다.<span class="flow-scroll-hint">옆으로 넘겨 모든 단계를 확인하세요.</span></p>
+          <p class="stage-browse-help">위 업무 번호나 아래 업무 카드를 선택하면 같은 업무가 함께 강조됩니다.<span class="flow-scroll-hint">옆으로 넘겨 모든 단계를 확인하세요.</span></p>
           <div class="gate-bar">
             <div class="gate-label"><span class="gate-label-dot" aria-hidden="true"></span>단계 전환</div>
             <div id="gate-description" class="gate-description" role="status"></div>
@@ -67,7 +67,7 @@
         <section id="stage-detail-panel" class="tasks-section" aria-labelledby="tasks-heading">
           <div class="section-heading">
             <div class="section-title-group"><span id="current-stage-letter" class="section-letter" aria-hidden="true"></span><div><p class="section-eyebrow"><span id="stage-detail-origin">선택한 단계의 상세 업무</span></p><div class="section-heading-line"><h2 id="tasks-heading"></h2><span id="task-count" class="count-badge"></span></div><p id="tasks-description" class="section-description"></p></div></div>
-            <span id="task-action-note" class="section-note">마우스를 올린 카드만 강조됩니다. 누르면 준비 상태를 확인합니다.</span>
+            <span id="task-action-note" class="section-note">위 목록과 같은 업무가 함께 반짝입니다. 누르면 준비 상태를 확인합니다.</span>
           </div>
           <div id="stage-preview-note" class="stage-preview-note" hidden>
             <p id="stage-preview-copy" role="status"></p>

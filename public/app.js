@@ -1,7 +1,7 @@
 "use strict";
 
 const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
-const state = { projects: [], detail: null, viewedStage: null, selectedTaskKey: null, activeTaskKey: null, flowExpanded: false, pulseEnabled: !motionPreference.matches, pulseOverridden: false, actor: "sales", busy: false, loadSequence: 0, toastTimer: null };
+const state = { projects: [], detail: null, viewedStage: null, selectedTaskKey: null, activeTaskKey: null, flowExpanded: true, pulseEnabled: !motionPreference.matches, pulseOverridden: false, actor: "sales", busy: false, loadSequence: 0, toastTimer: null };
 const $ = (selector) => document.querySelector(selector);
 const store = window.IBCM_STORE;
 const roleLabels = { executive: "총괄 임원", sales: "영업", delivery: "수행", pmo: "관리" };
@@ -86,6 +86,7 @@ function setBusy(busy) {
   $("#actor-select").disabled = busy;
   document.querySelectorAll("[data-module-key]").forEach((button) => { button.disabled = busy || button.dataset.preview === "true"; });
   document.querySelectorAll("[data-stage-target]").forEach((button) => { button.disabled = busy; });
+  document.querySelectorAll("[data-overview-module]").forEach((button) => { button.disabled = busy; });
   $("#return-current-stage").disabled = busy;
   $("#flow-expand-toggle").disabled = busy;
   $("#reject-submit").disabled = busy;
@@ -159,6 +160,7 @@ function renderStages() {
     const item = element("li", `stage-item stage-${tone}${index < current ? " complete" : index === current ? " current" : ""}${viewed ? " viewing" : ""}`);
     item.dataset.stage = stage.key;
     if (index === current) item.setAttribute("aria-current", "step");
+    const card = element("div", "stage-card");
     const button = element("button", "stage-button");
     button.type = "button";
     button.dataset.stageTarget = stage.key;
@@ -166,7 +168,6 @@ function renderStages() {
     button.setAttribute("aria-pressed", String(viewed));
     button.setAttribute("aria-controls", "task-grid");
     button.setAttribute("aria-label", `${stage.key} ${stage.name} 업무 보기${index === current ? ", 현재 진행 단계" : ""}`);
-    if (state.flowExpanded) button.setAttribute("aria-describedby", `stage-workflow-${stage.key}`);
     const circle = element("span", "stage-circle");
     circle.setAttribute("aria-hidden", "true");
     circle.textContent = stage.key;
@@ -175,20 +176,37 @@ function renderStages() {
     const stageTasks = modules.filter((module) => module.category === "stage_task" && module.stage === stage.key).sort((a, b) => a.order - b.order);
     const summary = element("span", "stage-summary");
     summary.append(head, element("span", "stage-name", stage.name), element("span", "stage-purpose", stagePurposes[stage.key]), element("span", "stage-role", stageRoles[stage.key] || ""));
-    const workflow = element("span", "stage-workflow");
+    const workflow = element("ol", "stage-workflow");
     workflow.hidden = !state.flowExpanded;
     workflow.id = `stage-workflow-${stage.key}`;
-    workflow.setAttribute("role", "list");
     workflow.setAttribute("aria-label", `${stage.name} 업무 구성`);
     workflow.append(...stageTasks.map((module) => {
       const role = module.mainRole || module.main_role;
-      const step = element("span", `stage-workflow-step ${role || ""}`);
-      step.setAttribute("role", "listitem");
-      step.dataset.overviewModule = module.key;
+      const step = element("li", `stage-workflow-step ${role || ""}`);
+      const task = element("button", `stage-task-button ${role || ""}`);
+      task.type = "button";
+      task.dataset.overviewModule = module.key;
+      task.disabled = state.busy;
+      task.setAttribute("aria-label", `${stage.key} 단계 ${String(module.order).padStart(2, "0")} ${module.name} 상세 업무 강조`);
+      task.setAttribute("aria-controls", "task-grid");
+      task.setAttribute("aria-pressed", String(state.selectedTaskKey === module.key));
       const number = element("span", "stage-workflow-number", String(module.order).padStart(2, "0"));
       const copy = element("span", "stage-workflow-copy");
       copy.append(element("span", "stage-workflow-name", module.name), element("span", "stage-workflow-role", roleLabels[role] || "담당 미정"));
-      step.append(number, copy);
+      task.append(number, copy);
+      const highlight = () => { if (!state.busy && state.viewedStage === module.stage) highlightTask(module.key); };
+      task.addEventListener("pointerenter", (event) => { if (event.pointerType !== "touch") highlight(); });
+      task.addEventListener("pointerleave", restoreTaskHighlight);
+      task.addEventListener("focus", highlight);
+      task.addEventListener("blur", restoreTaskHighlight);
+      task.addEventListener("click", () => {
+        if (state.busy) return;
+        if (state.viewedStage !== module.stage) selectStage(module.stage);
+        state.selectedTaskKey = module.key;
+        highlightTask(module.key);
+        document.querySelector(`[data-overview-module="${module.key}"]`).focus({ preventScroll: true });
+      });
+      step.append(task);
       return step;
     }));
     const footer = element("span", "stage-card-footer");
@@ -197,11 +215,14 @@ function renderStages() {
     footer.append(element("span", "stage-task-count", `업무 ${stageTasks.length}개`), browse);
     const caption = element("span", "stage-workflow-caption", "업무 구성");
     caption.hidden = !state.flowExpanded;
-    button.append(summary, caption, workflow, footer);
+    button.append(summary);
     button.addEventListener("click", () => selectStage(stage.key));
-    item.append(button);
+    card.append(button, caption, workflow, footer);
+    card.addEventListener("click", (event) => { if (!event.target.closest("button")) selectStage(stage.key); });
+    item.append(card);
     return item;
   }));
+  highlightTask(state.activeTaskKey);
   requestAnimationFrame(revealViewedStage);
 }
 
@@ -232,7 +253,7 @@ function scheduleStageConnection() {
 
 function updateStageConnection() {
   const connection = $("#stage-connection");
-  const selected = $("#stage-flow .viewing .stage-button");
+  const selected = $("#stage-flow .viewing .stage-card");
   if (!selected || $("#project-content").hidden) {
     connection.setAttribute("hidden", "");
     return;
@@ -367,16 +388,28 @@ function renderModules() {
 }
 
 function highlightTask(key) {
-  state.activeTaskKey = key;
-  document.querySelectorAll("#task-grid .module-card").forEach((card) => {
-    card.classList.toggle("is-highlighted", card.dataset.moduleKey === key && card.dataset.preview !== "true");
+  const module = state.detail?.modules.find((entry) => entry.key === key && entry.category === "stage_task" && entry.stage === state.viewedStage);
+  const activeKey = module ? key : null;
+  const cards = [...document.querySelectorAll("#task-grid .module-card, [data-overview-module]")];
+  const matches = (card) => activeKey !== null && (card.dataset.moduleKey || card.dataset.overviewModule) === activeKey;
+  const changed = cards.some((card) => card.classList.contains("is-highlighted") !== matches(card));
+  state.activeTaskKey = activeKey;
+  if (changed) {
+    cards.forEach((card) => card.classList.remove("is-highlighted"));
+    // Start both representations on the same animation frame, including after a rerender.
+    void $("#stage-workspace").offsetWidth;
+    cards.filter(matches).forEach((card) => card.classList.add("is-highlighted"));
+  }
+  cards.filter((card) => card.dataset.overviewModule).forEach((card) => {
+    card.setAttribute("aria-pressed", String(card.dataset.overviewModule === state.selectedTaskKey));
   });
 }
 
 function restoreTaskHighlight() {
-  const hovered = $("#task-grid .module-card:hover:not(:disabled)");
-  const focused = $("#task-grid .module-card:focus-visible:not(:disabled)");
-  highlightTask((hovered || focused)?.dataset.moduleKey || state.selectedTaskKey);
+  const hovered = $("#task-grid .module-card:hover:not(:disabled), #stage-flow .viewing .stage-task-button:hover:not(:disabled)");
+  const focused = $("#task-grid .module-card:focus-visible:not(:disabled), #stage-flow .viewing .stage-task-button:focus-visible:not(:disabled)");
+  const target = hovered || focused;
+  highlightTask(target?.dataset.moduleKey || target?.dataset.overviewModule || state.selectedTaskKey);
 }
 
 function moduleCard(module, common) {
