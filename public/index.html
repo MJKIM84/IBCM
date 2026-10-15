@@ -42,17 +42,16 @@
           <div class="project-team"><p class="team-caption">함께하는 담당자</p><div class="project-people" id="project-people" aria-label="프로젝트 담당자"></div></div>
         </section>
 
-        <div id="stage-workspace" class="stage-workspace">
+        <div id="stage-workspace" class="stage-workspace" data-pulse="false">
         <svg id="stage-connection" class="stage-connection" aria-hidden="true" focusable="false" hidden>
           <path id="stage-connection-fill" class="stage-connection-fill"/>
-          <path id="stage-connection-left" class="stage-connection-edge"/>
-          <path id="stage-connection-right" class="stage-connection-edge"/>
         </svg>
         <section class="flow-panel" aria-labelledby="flow-heading" data-expanded="false">
           <div class="panel-heading">
             <div><p class="section-eyebrow">사업의 시작부터 마무리까지</p><h2 id="flow-heading">프로젝트의 흐름</h2></div>
             <div class="flow-controls">
               <span id="stage-progress" class="current-stage-badge"></span>
+              <button id="flow-pulse-toggle" class="button button-secondary flow-pulse-toggle" type="button" aria-pressed="false" aria-label="선택 단계 박동" aria-controls="stage-workspace"><svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 12h5l3-7 4 14 3-7h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="flow-pulse-label">박동 꺼짐</span></button>
               <button id="flow-expand-toggle" class="button button-secondary flow-expand-toggle" type="button" aria-expanded="false" aria-controls="stage-flow"><span id="flow-expand-label">확장</span><svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
             </div>
           </div>

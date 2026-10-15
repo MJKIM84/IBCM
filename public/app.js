@@ -1,6 +1,7 @@
 "use strict";
 
-const state = { projects: [], detail: null, viewedStage: null, flowExpanded: false, actor: "sales", busy: false, loadSequence: 0, toastTimer: null };
+const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+const state = { projects: [], detail: null, viewedStage: null, flowExpanded: false, pulseEnabled: !motionPreference.matches, pulseOverridden: false, actor: "sales", busy: false, loadSequence: 0, toastTimer: null };
 const $ = (selector) => document.querySelector(selector);
 const store = window.IBCM_STORE;
 const roleLabels = { executive: "총괄 임원", sales: "영업", delivery: "수행", pmo: "관리" };
@@ -149,6 +150,7 @@ function renderStages() {
   $("#flow-expand-toggle").setAttribute("aria-label", `단계별 업무 목록 ${state.flowExpanded ? "접기" : "확장"}`);
   $("#flow-expand-label").textContent = state.flowExpanded ? "접기" : "확장";
   $("#stage-workspace").dataset.preview = String(state.viewedStage !== project.current_stage);
+  renderPulse();
   $("#stage-flow").replaceChildren(...stages.map((stage, index) => {
     const viewed = stage.key === state.viewedStage;
     const tone = index < 2 ? "sales" : index === 2 ? "handoff" : "delivery";
@@ -212,6 +214,12 @@ function revealViewedStage() {
 }
 
 let connectionFrame = null;
+function renderPulse() {
+  $("#stage-workspace").dataset.pulse = String(state.pulseEnabled);
+  $("#flow-pulse-toggle").setAttribute("aria-pressed", String(state.pulseEnabled));
+  $("#flow-pulse-label").textContent = state.pulseEnabled ? "박동 켜짐" : "박동 꺼짐";
+}
+
 function scheduleStageConnection() {
   if (connectionFrame !== null) return;
   connectionFrame = requestAnimationFrame(() => {
@@ -231,22 +239,33 @@ function updateStageConnection() {
   const flow = $("#stage-flow").getBoundingClientRect();
   const card = selected.getBoundingClientRect();
   const detail = $("#stage-detail-panel").getBoundingClientRect();
-  // Keep the connector attached to the visible part of a horizontally scrolling card.
-  const left = Math.max(card.left + 10, flow.left + 2) - workspace.left;
-  const right = Math.min(card.right - 10, flow.right - 2) - workspace.left;
-  if (right <= left || !workspace.width) {
+  if (!workspace.width) {
     connection.setAttribute("hidden", "");
     return;
   }
+  const start = card.top - workspace.top;
   const top = card.bottom - workspace.top;
   const bottom = detail.top - workspace.top;
-  const endLeft = detail.left + 18 - workspace.left;
-  const endRight = detail.right - 18 - workspace.left;
+  const endLeft = detail.left + 1 - workspace.left;
+  const endRight = detail.right - 1 - workspace.left;
+  const endBottom = detail.bottom - 1 - workspace.top;
+  const radius = 16;
+  // One opaque surface sits behind the selected card, connector and task content.
+  // Clipping the source to the scroll viewport keeps it off neighboring cards.
+  const left = Math.max(card.left, flow.left + 2) - workspace.left;
+  const right = Math.min(card.right, flow.right - 2) - workspace.left;
   const bend = (bottom - top) * .45;
+  const body = `V ${endBottom - radius} Q ${endRight} ${endBottom}, ${endRight - radius} ${endBottom} H ${endLeft + radius} Q ${endLeft} ${endBottom}, ${endLeft} ${endBottom - radius}`;
+  let surface;
+  if (right > left) {
+    const cardRadius = Math.min(10, (right - left) / 2);
+    surface = `M ${left + cardRadius} ${start} H ${right - cardRadius} Q ${right} ${start}, ${right} ${start + cardRadius} V ${top} C ${right} ${top + bend}, ${endRight} ${bottom - bend}, ${endRight} ${bottom + radius} ${body} V ${bottom + radius} C ${endLeft} ${bottom - bend}, ${left} ${top + bend}, ${left} ${top} V ${start + cardRadius} Q ${left} ${start}, ${left + cardRadius} ${start} Z`;
+  } else {
+    // Keep the task background visible when the selected card is scrolled out of view.
+    surface = `M ${endLeft + radius} ${bottom} H ${endRight - radius} Q ${endRight} ${bottom}, ${endRight} ${bottom + radius} ${body} V ${bottom + radius} Q ${endLeft} ${bottom}, ${endLeft + radius} ${bottom} Z`;
+  }
   connection.setAttribute("viewBox", `0 0 ${workspace.width} ${workspace.height}`);
-  $("#stage-connection-left").setAttribute("d", `M ${left} ${top} C ${left} ${top + bend}, ${endLeft} ${bottom - bend}, ${endLeft} ${bottom}`);
-  $("#stage-connection-right").setAttribute("d", `M ${right} ${top} C ${right} ${top + bend}, ${endRight} ${bottom - bend}, ${endRight} ${bottom}`);
-  $("#stage-connection-fill").setAttribute("d", `M ${left} ${top} L ${right} ${top} C ${right} ${top + bend}, ${endRight} ${bottom - bend}, ${endRight} ${bottom} L ${endLeft} ${bottom} C ${endLeft} ${bottom - bend}, ${left} ${top + bend}, ${left} ${top} Z`);
+  $("#stage-connection-fill").setAttribute("d", surface);
   connection.removeAttribute("hidden");
 }
 
@@ -505,6 +524,17 @@ $("#actor-select").addEventListener("change", (event) => {
 });
 $("#retry-button").addEventListener("click", boot);
 $("#return-current-stage").addEventListener("click", () => selectStage(state.detail.project.current_stage));
+$("#flow-pulse-toggle").addEventListener("click", () => {
+  state.pulseEnabled = !state.pulseEnabled;
+  state.pulseOverridden = true;
+  renderPulse();
+});
+motionPreference.addEventListener("change", (event) => {
+  if (!state.pulseOverridden) {
+    state.pulseEnabled = !event.matches;
+    renderPulse();
+  }
+});
 $("#flow-expand-toggle").addEventListener("click", () => {
   if (state.busy || !state.detail) return;
   state.flowExpanded = !state.flowExpanded;

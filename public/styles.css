@@ -77,15 +77,18 @@ h1 { color: #203a30; font-size: 30px; line-height: 1.35; font-weight: 750; }
 .person-name { color: #344b3d; font-size: 12px; font-weight: 650; }
 
 /* 다섯 단계로 연결되는 사업 지도 */
-.stage-workspace { position: relative; isolation: isolate; --selection-color: #347f61; --selection-soft: #f0f8f3; --selection-strong: #dcefe3; }
-.stage-workspace[data-preview="true"] { --selection-color: #6a7a94; --selection-soft: #f2f5fa; --selection-strong: #e1e9f4; }
+.stage-workspace { position: relative; isolation: isolate; --selection-color: #347f61; --selection-soft: #eff8f2; --selection-strong: #bcdfcc; }
+.stage-workspace[data-preview="true"] { --selection-color: #6a7a94; --selection-soft: #f1f5fb; --selection-strong: #c4d7ed; }
 .stage-connection { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; overflow: visible; }
-.stage-connection-fill { fill: var(--selection-strong); opacity: .7; animation: connection-pulse 3.6s ease-in-out infinite; }
-.stage-connection-edge { fill: none; stroke: var(--selection-color); stroke-width: 1.5; opacity: .5; }
-.flow-panel { background: white; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; box-shadow: 0 3px 14px #173d2b04; }
+.stage-connection-fill { fill: var(--selection-soft); stroke: var(--selection-color); stroke-width: 1.5; stroke-opacity: .65; }
+.stage-workspace[data-pulse="true"] .stage-connection-fill { animation: stage-heartbeat 2.4s ease-in-out infinite; }
+.flow-panel { position: relative; background: white; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; box-shadow: 0 3px 14px #173d2b04; }
+.flow-panel > * { position: relative; z-index: 2; }
 .panel-heading { padding: 25px 28px 0; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 .flow-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
 .flow-expand-toggle { white-space: nowrap; }
+.flow-pulse-toggle { white-space: nowrap; }
+.flow-pulse-toggle[aria-pressed="true"] { color: var(--green); background: #edf7f1; border-color: #b8d6c5; }
 .flow-expand-toggle[aria-expanded="true"] .icon { transform: rotate(180deg); }
 .section-eyebrow { color: #728276; font-size: 11px; letter-spacing: .015em; font-weight: 550; margin-bottom: 6px; }
 h2 { font-size: 22px; line-height: 1.4; font-weight: 750; }
@@ -102,8 +105,8 @@ h2 { font-size: 22px; line-height: 1.4; font-weight: 750; }
 .stage-button::before { content: ""; position: absolute; left: 14px; right: 14px; top: 0; height: 3px; border-radius: 0 0 3px 3px; background: var(--stage-color); opacity: .45; }
 .stage-button:hover:not(:disabled) { border-color: var(--stage-color); background: #fff; box-shadow: 0 3px 10px #233c3110; }
 .stage-item.current .stage-button { background: #f0f7f3; border-color: #90baa5; }
-.stage-item.viewing .stage-button { border: 2px solid #347f61; padding: 15px 13px 11px; box-shadow: 0 0 0 3px #eaf3ed; background: var(--selection-soft); animation: stage-highlight-pulse 3.6s ease-in-out infinite; }
-.stage-item.viewing:not(.current) .stage-button { border-color: #6a7a94; box-shadow: 0 0 0 3px #edf0f5; }
+.stage-item.viewing .stage-button { border: 2px solid transparent; padding: 15px 13px 11px; box-shadow: none; background: transparent; }
+.stage-item.viewing .stage-purpose, .stage-item.viewing .stage-card-footer { color: #435d4e; }
 .stage-card-head { display: flex; align-items: center; justify-content: space-between; gap: 5px; width: 100%; margin-bottom: 16px; }
 .stage-circle { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; color: var(--stage-color); background: var(--stage-bg); font-size: 17px; font-weight: 750; }
 .stage-view-label { font-size: 10px; color: #7a887f; padding: 4px 6px; border-radius: 5px; }
@@ -156,12 +159,14 @@ h2 { font-size: 22px; line-height: 1.4; font-weight: 750; }
 
 /* 단계 안에서 누가 어떤 업무를 맡는지 보여 줍니다. */
 .tasks-section, .common-section { margin-top: 34px; }
-.tasks-section { position: relative; z-index: 2; isolation: isolate; padding: 23px; border: 1px solid var(--selection-color); border-radius: 16px; background: #f8fbf9; }
-.tasks-section::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; border-radius: inherit; background: var(--selection-strong); opacity: .3; animation: detail-highlight-pulse 3.6s ease-in-out infinite; }
+.tasks-section { position: relative; z-index: 2; padding: 24px; border: 0; background: transparent; }
+.tasks-section .section-eyebrow, .tasks-section .section-description, .tasks-section .section-note { color: #486051; }
 .tasks-section .section-letter { color: var(--selection-color); background: var(--selection-strong); border-color: var(--selection-color); }
-@keyframes stage-highlight-pulse { 0%, 100% { background-color: var(--selection-soft); } 50% { background-color: var(--selection-strong); } }
-@keyframes connection-pulse { 0%, 100% { opacity: .45; } 50% { opacity: .85; } }
-@keyframes detail-highlight-pulse { 0%, 100% { opacity: .2; } 50% { opacity: .5; } }
+@keyframes stage-heartbeat {
+  0%, 42%, 100% { fill: var(--selection-soft); stroke-opacity: .65; }
+  12%, 30% { fill: var(--selection-strong); stroke-opacity: 1; }
+  21% { fill: var(--selection-soft); stroke-opacity: .75; }
+}
 .section-heading { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 20px; }
 .section-title-group { display: flex; align-items: center; gap: 14px; min-width: 0; }
 .section-letter { display: grid; place-items: center; width: 49px; height: 55px; flex: none; color: #397452; background: #e7f0e8; border: 1px solid #d8e5db; border-radius: 10px; font-size: 24px; font-weight: 700; }
@@ -368,7 +373,8 @@ h2 { font-size: 22px; line-height: 1.4; font-weight: 750; }
   .person-name { font-size: 12px; }
   .flow-panel { border-radius: 12px; }
   .panel-heading { padding: 21px 18px 0; align-items: flex-start; flex-direction: column; gap: 12px; }
-  .flow-controls { width: 100%; justify-content: space-between; gap: 6px; }
+  .flow-controls { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .flow-controls .current-stage-badge { grid-column: 1 / -1; justify-self: start; }
   .section-eyebrow { font-size: 10px; }
   h2 { font-size: 21px; }
   .current-stage-badge { font-size: 11px; padding: 6px 9px; }
@@ -425,4 +431,6 @@ h2 { font-size: 22px; line-height: 1.4; font-weight: 750; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  /* Reduced motion starts paused; the user can explicitly enable the heartbeat. */
+  .stage-workspace[data-pulse="true"] .stage-connection-fill { animation: stage-heartbeat 2.4s ease-in-out infinite !important; }
 }
