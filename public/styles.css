@@ -84,7 +84,8 @@ h2 { font-size: 22px; line-height: 1.4; font-weight: 750; }
 .current-stage-badge { padding: 8px 11px; border: 1px solid #d6e7dc; border-radius: 7px; background: #f0f7f2; color: #2c6950; font-size: 12px; font-weight: 600; white-space: nowrap; }
 .stage-browse-help { margin: 9px 28px 0; color: #66786a; font-size: 12px; line-height: 1.7; }
 .flow-scroll-hint { display: none; }
-.stage-flow { position: relative; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; margin: 23px 0 0; padding: 4px 28px 25px; list-style: none; overflow-x: auto; scrollbar-width: thin; scrollbar-color: #bbcfc3 transparent; }
+.stage-flow { position: relative; display: grid; grid-template-columns: repeat(5, minmax(230px, 1fr)); gap: 14px; margin: 23px 0 0; padding: 4px 28px 25px; list-style: none; overflow-x: auto; scrollbar-width: thin; scrollbar-color: #bbcfc3 transparent; }
+.flow-panel[data-scrollable="true"] .flow-scroll-hint { display: block; color: #76897b; font-size: 11px; margin-top: 4px; }
 .stage-item { position: relative; min-width: 0; --stage-color: var(--delivery); --stage-bg: var(--delivery-bg); }
 .stage-sales { --stage-color: var(--sales); --stage-bg: var(--sales-bg); }
 .stage-handoff { --stage-color: #687787; --stage-bg: #edf0f4; }
@@ -104,6 +105,22 @@ h2 { font-size: 22px; line-height: 1.4; font-weight: 750; }
 .stage-name { color: #2b4033; font-size: 16px; font-weight: 750; letter-spacing: -.04em; }
 .stage-purpose { color: #66776b; font-size: 11px; line-height: 1.6; margin-top: 5px; word-break: keep-all; }
 .stage-role { color: var(--stage-color); font-size: 11px; font-weight: 600; margin-top: 9px; }
+.stage-summary { display: flex; flex-direction: column; min-height: 143px; width: 100%; }
+.stage-summary .stage-purpose { min-height: 36px; }
+.stage-workflow-caption { display: block; width: 100%; margin-top: 15px; padding-top: 13px; border-top: 1px solid #e4eae5; color: #708174; font-size: 10px; font-weight: 650; letter-spacing: .02em; }
+.stage-workflow { display: flex; flex-direction: column; gap: 5px; width: 100%; margin-top: 10px; margin-bottom: 6px; }
+.stage-workflow-step { position: relative; display: grid; grid-template-columns: 22px minmax(0, 1fr); align-items: center; gap: 7px; min-height: 43px; --step-color: #5d7365; --step-bg: #edf2ee; }
+.stage-workflow-step.sales { --step-color: var(--sales); --step-bg: var(--sales-bg); }
+.stage-workflow-step.delivery { --step-color: var(--delivery); --step-bg: var(--delivery-bg); }
+.stage-workflow-step.pmo { --step-color: var(--pmo); --step-bg: var(--pmo-bg); }
+.stage-workflow-step::before { content: ""; position: absolute; left: 10px; top: 0; bottom: -5px; width: 1px; background: #d7e1da; }
+.stage-workflow-step:first-child::before { top: 50%; }
+.stage-workflow-step:last-child::before { bottom: 50%; }
+.stage-workflow-step:only-child::before { display: none; }
+.stage-workflow-number { position: relative; z-index: 1; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; color: var(--step-color); background: var(--step-bg); border: 2px solid #fcfdfc; font-size: 9px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.stage-workflow-copy { display: flex; align-items: center; justify-content: space-between; gap: 5px; min-width: 0; min-height: 39px; padding: 6px 7px; border: 1px solid #e8ede8; border-radius: 6px; background: #ffffffbc; }
+.stage-workflow-name { min-width: 0; color: #3e5746; font-size: 11px; line-height: 1.55; font-weight: 550; word-break: keep-all; overflow-wrap: anywhere; }
+.stage-workflow-role { flex: none; color: var(--step-color); background: var(--step-bg); padding: 3px 4px; border-radius: 4px; font-size: 9px; font-weight: 600; line-height: 1.4; }
 .stage-card-footer { display: flex; justify-content: space-between; align-items: center; gap: 4px; width: 100%; margin-top: auto; padding-top: 15px; color: #6b7d71; font-size: 10px; }
 .stage-browse-label { display: flex; align-items: center; gap: 3px; color: #415e4b; }
 .stage-browse-label .icon { width: 13px; height: 13px; }
@@ -294,7 +311,7 @@ h2 { font-size: 22px; line-height: 1.4; font-weight: 750; }
   .project-intro { flex-direction: column; gap: 22px; }
   .project-team { width: 100%; }
   .project-people { display: flex; justify-content: space-between; }
-  .stage-flow { grid-template-columns: repeat(5, 170px); padding-left: 22px; padding-right: 22px; }
+  .stage-flow { grid-template-columns: repeat(5, 235px); padding-left: 22px; padding-right: 22px; }
   .stage-button { min-height: 200px; }
   .stage-purpose { min-height: 0; }
   .stage-card-footer { flex-wrap: nowrap; }
@@ -340,7 +357,7 @@ h2 { font-size: 22px; line-height: 1.4; font-weight: 750; }
   h2 { font-size: 21px; }
   .current-stage-badge { font-size: 11px; padding: 6px 9px; }
   .stage-browse-help { margin: 10px 18px 0; font-size: 11px; }
-  .stage-flow { margin-top: 16px; padding: 4px 18px 20px; grid-template-columns: repeat(5, 168px); }
+  .stage-flow { margin-top: 16px; padding: 4px 18px 20px; grid-template-columns: repeat(5, 235px); }
   .stage-button { min-height: 198px; }
   .stage-name { font-size: 16px; }
   .gate-bar { padding: 16px 18px; flex-wrap: wrap; }

@@ -156,17 +156,35 @@ function renderStages() {
     button.setAttribute("aria-pressed", String(viewed));
     button.setAttribute("aria-controls", "task-grid");
     button.setAttribute("aria-label", `${stage.key} ${stage.name} 업무 보기${index === current ? ", 현재 진행 단계" : ""}`);
+    button.setAttribute("aria-describedby", `stage-workflow-${stage.key}`);
     const circle = element("span", "stage-circle");
     circle.setAttribute("aria-hidden", "true");
     circle.textContent = stage.key;
     const head = element("span", "stage-card-head");
     head.append(circle, element("span", "stage-view-label", index === current ? "현재 진행" : viewed ? "미리보기" : index < current ? "완료" : "예정"));
-    const count = modules.filter((module) => module.category === "stage_task" && module.stage === stage.key).length;
+    const stageTasks = modules.filter((module) => module.category === "stage_task" && module.stage === stage.key).sort((a, b) => a.order - b.order);
+    const summary = element("span", "stage-summary");
+    summary.append(head, element("span", "stage-name", stage.name), element("span", "stage-purpose", stagePurposes[stage.key]), element("span", "stage-role", stageRoles[stage.key] || ""));
+    const workflow = element("span", "stage-workflow");
+    workflow.id = `stage-workflow-${stage.key}`;
+    workflow.setAttribute("role", "list");
+    workflow.setAttribute("aria-label", `${stage.name} 업무 구성`);
+    workflow.append(...stageTasks.map((module) => {
+      const role = module.mainRole || module.main_role;
+      const step = element("span", `stage-workflow-step ${role || ""}`);
+      step.setAttribute("role", "listitem");
+      step.dataset.overviewModule = module.key;
+      const number = element("span", "stage-workflow-number", String(module.order).padStart(2, "0"));
+      const copy = element("span", "stage-workflow-copy");
+      copy.append(element("span", "stage-workflow-name", module.name), element("span", "stage-workflow-role", roleLabels[role] || "담당 미정"));
+      step.append(number, copy);
+      return step;
+    }));
     const footer = element("span", "stage-card-footer");
     const browse = element("span", "stage-browse-label", viewed ? "보고 있는 단계" : "업무 보기");
     browse.append(icon("arrow"));
-    footer.append(element("span", "stage-task-count", `업무 ${count}개`), browse);
-    button.append(head, element("span", "stage-name", stage.name), element("span", "stage-purpose", stagePurposes[stage.key]), element("span", "stage-role", stageRoles[stage.key] || ""), footer);
+    footer.append(element("span", "stage-task-count", `업무 ${stageTasks.length}개`), browse);
+    button.append(summary, element("span", "stage-workflow-caption", "업무 구성"), workflow, footer);
     button.addEventListener("click", () => selectStage(stage.key));
     item.append(button);
     return item;
@@ -177,6 +195,7 @@ function renderStages() {
 function revealViewedStage() {
   const flow = $("#stage-flow");
   const selected = flow.querySelector(".viewing");
+  flow.closest(".flow-panel").dataset.scrollable = String(flow.scrollWidth > flow.clientWidth);
   if (flow.scrollWidth > flow.clientWidth && selected) {
     flow.scrollLeft = Math.max(0, selected.offsetLeft - (flow.clientWidth - selected.offsetWidth) / 2);
   }
